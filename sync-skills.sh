@@ -176,7 +176,7 @@ if [[ "${1:-}" == "--seed" ]]; then
     done
     flush_hashes
     log "Seed complete. ${#SYNCED_SKILLS[@]} skills baselined."
-    notify "🌱 Skill Sync" "✅ Seeded: ${#SYNCED_SKILLS[@]} skills baselined" "file://$SYNC_LOG"
+    notify "⚡ Skill Sync" "✅ Seeded: ${#SYNCED_SKILLS[@]} skills baselined" "file://$SYNC_LOG"
     echo "⚡ Seed complete. ${#SYNCED_SKILLS[@]} skills baselined."
     exit 0
 fi
