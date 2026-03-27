@@ -27,6 +27,11 @@ HASH_UPDATES=""
 mkdir -p "$CANONICAL"
 [ -f "$HASH_STORE" ] || echo '{}' > "$HASH_STORE"
 
+# Log rotation — keep last 1000 lines
+if [ -f "$SYNC_LOG" ] && [ "$(wc -l < "$SYNC_LOG" 2>/dev/null)" -gt 2000 ]; then
+    tail -1000 "$SYNC_LOG" > "${SYNC_LOG}.tmp" && mv "${SYNC_LOG}.tmp" "$SYNC_LOG"
+fi
+
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$SYNC_LOG"; }
 
 notify() {
@@ -42,7 +47,11 @@ notify() {
 
 content_hash() {
     if [ -f "$1" ]; then
-        awk 'BEGIN{c=0} /^---$/{c++; next} c>=2{print}' "$1" | md5 -q 2>/dev/null || echo "ERR"
+        if command -v md5 >/dev/null 2>&1; then
+            awk 'BEGIN{c=0} /^---$/{c++; next} c>=2{print}' "$1" | md5 -q
+        else
+            awk 'BEGIN{c=0} /^---$/{c++; next} c>=2{print}' "$1" | md5sum | cut -d' ' -f1
+        fi
     else
         echo "MISSING"
     fi
@@ -80,10 +89,6 @@ with open('$HASH_STORE','w') as f: json.dump(d,f,indent=2,sort_keys=True)
 
 extract_description() {
     awk '/^---$/{c++; next} c==1 && /^description:/{sub(/^description: */, ""); print}' "$1"
-}
-
-extract_name() {
-    awk '/^---$/{c++; next} c==1 && /^name:/{sub(/^name: */, ""); print}' "$1"
 }
 
 extract_body() {
@@ -146,16 +151,18 @@ write_skill() {
 
     cp "$source_file" "$dest_dir/SKILL.md"
 
-    # Codex needs agents/openai.yaml
-    if [ "$tool_name" = "codex" ]; then
+    # Codex needs agents/openai.yaml — only create if missing
+    if [ "$tool_name" = "codex" ] && [ ! -f "$dest_dir/agents/openai.yaml" ]; then
         mkdir -p "$dest_dir/agents"
         local desc
         desc=$(extract_description "$source_file")
         [ -z "$desc" ] && desc="$skill_name"
+        local short_desc
+        short_desc=$(printf '%.64s' "$desc")
         cat > "$dest_dir/agents/openai.yaml" <<YAML_EOF
 interface:
   display_name: "$skill_name"
-  short_description: "${desc:0:64}"
+  short_description: "$short_desc"
   default_prompt: "Use \$${skill_name} to help with this task."
 YAML_EOF
     fi
@@ -303,7 +310,7 @@ if [[ "${1:-}" == "--seed" ]]; then
         sync_skill "$skill_name"
         skill_count=$((skill_count + 1))
     done < "$all_file"
-    rm -f "$all_file"
+    rm -f "$all_file" "$HASH_CACHE"
 
     flush_hashes
     log "Seed complete. $skill_count skills across ${#TOOLS[@]} tools."

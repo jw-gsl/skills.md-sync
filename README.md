@@ -1,72 +1,99 @@
-# skill-sync
+# skills.md-sync
 
-Bidirectional skill sync between **Claude Code** and **OpenAI Codex CLI**.
+Multi-tool AI skill sync using the [SKILL.md open standard](https://agentskills.io/specification).
 
-Skills created in one tool automatically appear in the other, with format conversion handled transparently.
+Create a skill in **any** AI CLI tool and it automatically appears in all the others.
 
-## What it does
+## Supported tools
 
-| Direction | Source | Target |
-|-----------|--------|--------|
-| Codex -> Claude | `~/.codex/skills/<name>/SKILL.md` | `~/.claude/commands/<name>.md` |
-| Claude -> Codex | `~/.claude/commands/<name>.md` | `~/.codex/skills/<name>/SKILL.md` + `agents/openai.yaml` |
+| Tool | Skills location | Auto-detected |
+|------|----------------|---------------|
+| **Claude Code** | `~/.claude/skills/` | Yes (if `~/.claude/` exists) |
+| **Codex CLI** | `~/.codex/skills/` | Yes (if `~/.codex/` exists) |
+| **Gemini CLI** | `~/.gemini/skills/` | Yes (if `~/.gemini/` exists) |
+| **GitHub Copilot** | `~/.copilot/skills/` | Yes (if `~/.copilot/` exists) |
 
-- **Content hashing** (md5) detects actual changes, not timestamps
-- **Auto-conflict resolution** when both sides change: most recently modified wins
-- **Source tracking** prevents sync loops (each synced file is tagged with its origin)
-- **macOS toast notifications** via `terminal-notifier` with click-to-open log
-- Optional **daily cron** via macOS LaunchAgent
+All tools use the standard `SKILL.md` format. Codex additionally gets `agents/openai.yaml` auto-generated.
+
+## Architecture
+
+```
+~/.skills/                  <-- canonical store (source of truth)
+  ├── my-skill/SKILL.md
+  └── another-skill/SKILL.md
+
+Synced to all detected tools:
+  ~/.claude/skills/         <-- Claude Code
+  ~/.codex/skills/          <-- Codex CLI (+ openai.yaml)
+  ~/.gemini/skills/         <-- Gemini CLI
+  ~/.copilot/skills/        <-- GitHub Copilot
+```
 
 ## Quick start
 
 ```bash
-git clone https://github.com/YOUR_USER/skill-sync.git ~/.skill-sync
-cd ~/.skill-sync
+git clone https://github.com/jw-gsl/skills.md-sync.git
+cd skills.md-sync
 chmod +x sync-skills.sh install.sh
 
-# First run: seed from Codex as source of truth
+# See what tools are detected
+./sync-skills.sh --status
+
+# First run: import all existing skills from all tools
 ./sync-skills.sh --seed
 
 # Normal sync
 ./sync-skills.sh
 
-# Install daily cron (8am)
+# Install daily cron (8am, macOS only)
 ./install.sh
 ```
 
-## How sync works
+## How it works
 
-1. Script builds a unified list of all skill names from both `~/.codex/skills/` and `~/.claude/commands/`
-2. For each skill, it hashes the body content (ignoring frontmatter) on both sides
-3. Compares against stored hashes from the last sync run
-4. Decides:
-   - **Neither changed** -> skip
-   - **Only one side changed** -> sync to the other
-   - **Both changed** -> auto-resolve (most recently modified wins)
-   - **Only exists on one side** -> create on the other
-5. Stores new hashes for the next run
+1. Scans all detected tool skill directories for `SKILL.md` files
+2. Builds a unified list of skill names across all tools
+3. For each skill, hashes the body content (ignoring frontmatter) on every side
+4. Compares against stored hashes from the last run
+5. If any tool's copy changed, the **most recently modified version wins** and is pushed to all others via the canonical store
+6. Stores updated hashes for the next run
 
-## Format conversion
+No manual conflict resolution needed — newest edit always wins.
 
-**Codex SKILL.md** has `name` + `description` frontmatter and a markdown body with workflow instructions.
+## Commands
 
-**Claude commands** have `description` frontmatter and the same body. A `source: codex-sync` tag prevents re-syncing back.
+| Command | Description |
+|---------|-------------|
+| `./sync-skills.sh` | Normal sync — detect changes and propagate |
+| `./sync-skills.sh --seed` | Import all existing skills, baseline hashes |
+| `./sync-skills.sh --status` | Show detected tools and skill counts |
 
-**Codex openai.yaml** is auto-generated with `display_name`, `short_description`, and `default_prompt`.
+## Notifications
+
+On macOS, uses `terminal-notifier` for toast notifications when skills are synced. Clicking the notification opens the sync log.
+
+- **1 skill:** `✅ Synced: my-skill`
+- **Multiple:** `✅ 5 synced: my-skill +4 more`
+
+Install with: `brew install terminal-notifier`
 
 ## Configuration
 
-Override default paths via environment variables:
+Override the canonical store location:
 
 ```bash
-CODEX_SKILLS_DIR=~/my-codex-skills CLAUDE_COMMANDS_DIR=~/my-claude-cmds ./sync-skills.sh
+SKILLS_DIR=~/my-skills ./sync-skills.sh
 ```
+
+## Adding a new tool
+
+Edit `declare_tools()` in `sync-skills.sh`. Each tool just needs a name and the path where it expects `<skill-name>/SKILL.md` directories.
 
 ## Requirements
 
-- macOS (uses `md5 -q` and `stat -f %m`)
+- macOS or Linux
 - `python3` (for JSON hash storage)
-- `terminal-notifier` (optional, for toast notifications): `brew install terminal-notifier`
+- `terminal-notifier` (optional, macOS toast notifications)
 
 ## License
 
