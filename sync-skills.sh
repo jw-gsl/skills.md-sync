@@ -279,8 +279,13 @@ log ""
 LOG_URL="file://$SYNC_LOG"
 if [ ${#SYNCED_SKILLS[@]} -gt 0 ]; then
     count=${#SYNCED_SKILLS[@]}
-    skill_names=$(printf '%s\n' "${SYNCED_SKILLS[@]}" | sed 's/.*: //' | head -3 | tr '\n' ', ' | sed 's/,$//')
-    notify "🔄 Skill Sync" "✅ $count skill(s) synced: $skill_names" "$LOG_URL"
+    if [ "$count" -le 3 ]; then
+        skill_names=$(printf '%s\n' "${SYNCED_SKILLS[@]}" | sed 's/.*: //' | tr '\n' ', ' | sed 's/,$//')
+        notify "🔄 Skill Sync" "✅ $count synced: $skill_names" "$LOG_URL"
+    else
+        first_two=$(printf '%s\n' "${SYNCED_SKILLS[@]}" | sed 's/.*: //' | head -2 | tr '\n' ', ' | sed 's/,$//')
+        notify "🔄 Skill Sync" "✅ $count synced: $first_two +$((count - 2)) more" "$LOG_URL"
+    fi
     echo "✅ Synced $count skill(s):"
     printf '  🔗 %s\n' "${SYNCED_SKILLS[@]}"
 else
