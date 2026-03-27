@@ -176,8 +176,8 @@ if [[ "${1:-}" == "--seed" ]]; then
     done
     flush_hashes
     log "Seed complete. ${#SYNCED_SKILLS[@]} skills baselined."
-    notify "Skill Sync" "Seeded: ${#SYNCED_SKILLS[@]} skills baselined" "file://$SYNC_LOG"
-    echo "Seed complete. ${#SYNCED_SKILLS[@]} skills baselined."
+    notify "🌱 Skill Sync" "✅ Seeded: ${#SYNCED_SKILLS[@]} skills baselined" "file://$SYNC_LOG"
+    echo "🌱 Seed complete. ${#SYNCED_SKILLS[@]} skills baselined."
     exit 0
 fi
 
@@ -278,9 +278,11 @@ log ""
 # Notifications
 LOG_URL="file://$SYNC_LOG"
 if [ ${#SYNCED_SKILLS[@]} -gt 0 ]; then
-    notify "Skill Sync" "${#SYNCED_SKILLS[@]} skill(s) synced" "$LOG_URL"
-    echo "Synced ${#SYNCED_SKILLS[@]} skill(s):"
-    printf '  %s\n' "${SYNCED_SKILLS[@]}"
+    count=${#SYNCED_SKILLS[@]}
+    skill_names=$(printf '%s\n' "${SYNCED_SKILLS[@]}" | sed 's/.*: //' | head -3 | tr '\n' ', ' | sed 's/,$//')
+    notify "🔄 Skill Sync" "✅ $count skill(s) synced: $skill_names" "$LOG_URL"
+    echo "✅ Synced $count skill(s):"
+    printf '  🔗 %s\n' "${SYNCED_SKILLS[@]}"
 else
-    echo "All skills up to date."
+    echo "✨ All skills up to date."
 fi
