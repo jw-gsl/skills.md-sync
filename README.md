@@ -1,8 +1,8 @@
 # skills.md-sync
 
-Multi-tool AI skill sync using the [SKILL.md open standard](https://agentskills.io/specification).
+Automatically sync AI skills across **every** CLI tool installed on your machine — Claude Code, Codex, Gemini, GitHub Copilot, Cursor, and more — using the [SKILL.md open standard](https://agentskills.io/specification).
 
-Create a skill in **any** AI CLI tool and it automatically appears in all the others.
+Create or update a skill in any tool and it instantly propagates to all the others. No manual copying, no conflicts.
 
 ## Supported tools
 
@@ -12,6 +12,7 @@ Create a skill in **any** AI CLI tool and it automatically appears in all the ot
 | **Codex CLI** | `~/.codex/skills/` | Yes (if `~/.codex/` exists) |
 | **Gemini CLI** | `~/.gemini/skills/` | Yes (if `~/.gemini/` exists) |
 | **GitHub Copilot** | `~/.copilot/skills/` | Yes (if `~/.copilot/` exists) |
+| **Cursor** | `~/.cursor/skills/` | Yes (if `~/.cursor/` exists) |
 
 All tools use the standard `SKILL.md` format. Codex additionally gets `agents/openai.yaml` auto-generated.
 
@@ -27,6 +28,7 @@ Synced to all detected tools:
   ~/.codex/skills/          <-- Codex CLI (+ openai.yaml)
   ~/.gemini/skills/         <-- Gemini CLI
   ~/.copilot/skills/        <-- GitHub Copilot
+  ~/.cursor/skills/         <-- Cursor
 ```
 
 ## Quick start

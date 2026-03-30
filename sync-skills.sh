@@ -131,6 +131,13 @@ declare_tools() {
         mkdir -p "$copilot_skills"
         TOOLS+=("copilot|$copilot_skills|skill.md|yes")
     fi
+
+    # Cursor — skills dir (SKILL.md standard)
+    local cursor_skills="$HOME/.cursor/skills"
+    if [ -d "$HOME/.cursor" ]; then
+        mkdir -p "$cursor_skills"
+        TOOLS+=("cursor|$cursor_skills|skill.md|yes")
+    fi
 }
 
 # ── Read a skill from any tool location ─────────────────────────────────
