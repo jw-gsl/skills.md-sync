@@ -12,6 +12,7 @@ Create a skill in **any** AI CLI tool and it automatically appears in all the ot
 | **Codex CLI** | `~/.codex/skills/` | Yes (if `~/.codex/` exists) |
 | **Gemini CLI** | `~/.gemini/skills/` | Yes (if `~/.gemini/` exists) |
 | **GitHub Copilot** | `~/.copilot/skills/` | Yes (if `~/.copilot/` exists) |
+| **Cursor** | `~/.cursor/skills/` | Yes (if `~/.cursor/` exists) |
 
 All tools use the standard `SKILL.md` format. Codex additionally gets `agents/openai.yaml` auto-generated.
 
@@ -27,6 +28,7 @@ Synced to all detected tools:
   ~/.codex/skills/          <-- Codex CLI (+ openai.yaml)
   ~/.gemini/skills/         <-- Gemini CLI
   ~/.copilot/skills/        <-- GitHub Copilot
+  ~/.cursor/skills/         <-- Cursor
 ```
 
 ## Quick start
